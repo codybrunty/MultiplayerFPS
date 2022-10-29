@@ -10,7 +10,6 @@ public class PlayerController : MonoBehaviour{
     private Camera cam;
     private CharacterController characterController;
     [SerializeField] private Transform groundCheckPoint;
-    [SerializeField] private GunController gunController;
     [Header("Mouse Settings")]
     public bool invertedLook;
     public float mouseSensitivity;
@@ -38,7 +37,6 @@ public class PlayerController : MonoBehaviour{
     private void Update() {
         PlayerRotation();
         PlayerMovement();
-        CheckIsShooting();
     }
 
     private void LateUpdate() {
@@ -47,14 +45,7 @@ public class PlayerController : MonoBehaviour{
     }
 
     #region Shooting
-    private void CheckIsShooting() {
-        if (Input.GetMouseButtonDown(0)) {
-            gunController.Shoot();
-        }
-        if (Input.GetMouseButton(0)) {
-            gunController.Shoot();
-        }
-    }
+
     #endregion
 
     #region Translation
