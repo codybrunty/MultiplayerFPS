@@ -26,17 +26,21 @@ public class PlayerController : MonoBehaviour{
     public float jumpForce;
     private bool isGrounded;
     public LayerMask groundLayers;
-
-
+    [Header("Crouch Settings")]
+    public float crouchYPosition;
+    public float crouchSpeed;
+    private float targetViewportYPosition;
 
     private void Start() {
         characterController = GetComponent<CharacterController>();
         cam = Camera.main;
+        SetPlayerAtRandomSpawnPoint();
     }
 
     private void Update() {
         PlayerRotation();
         PlayerMovement();
+        CheckForCrouch();
     }
 
     private void LateUpdate() {
@@ -44,7 +48,12 @@ public class PlayerController : MonoBehaviour{
         SetCameraRotation();
     }
 
-    #region Shooting
+    #region Spawn
+    private void SetPlayerAtRandomSpawnPoint() {
+        Transform spawnPoint = SpawnManager.instance.GetRandomSpawnPoint();
+        transform.position = spawnPoint.position;
+        transform.rotation = spawnPoint.rotation;
+    }
 
     #endregion
 
@@ -79,6 +88,21 @@ public class PlayerController : MonoBehaviour{
         return moveSpeed;
     }
 
+    #endregion
+
+    #region Crouch
+    private void CheckForCrouch() {
+        if (Input.GetKey(KeyCode.LeftControl)) {
+            targetViewportYPosition = crouchYPosition;
+        }
+        else {
+            targetViewportYPosition = .5f;
+        }
+        LerpToCrouchPosition();
+    }
+    private void LerpToCrouchPosition() {
+        viewPoint.localPosition = Vector3.Lerp(viewPoint.localPosition, new Vector3(0f,targetViewportYPosition,0f), Time.deltaTime * crouchSpeed);
+    }
     #endregion
 
     #region Rotation

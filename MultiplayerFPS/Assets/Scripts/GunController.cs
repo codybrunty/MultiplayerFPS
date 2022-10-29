@@ -125,6 +125,21 @@ public class GunController : MonoBehaviour {
                 NextWeapon();
             }
         }
+        if (Input.GetKeyDown("1")) {
+            if (currentGun != 0) {
+                SwitchWeapon(0);
+            }
+        }
+        if (Input.GetKeyDown("2")) {
+            if (currentGun != 1) {
+                SwitchWeapon(1);
+            }
+        }
+        if (Input.GetKeyDown("3")) {
+            if (currentGun != 2) {
+                SwitchWeapon(2);
+            }
+        }
     }
 
     private void NextWeapon() {
