@@ -6,6 +6,7 @@ public class Gun : MonoBehaviour{
 
     public string gunName;
     public bool isAutomatic;
+    public float zoomedFOV;
     public float timeBetweenShots;
     public int ammo;
     public int currentAmmo;

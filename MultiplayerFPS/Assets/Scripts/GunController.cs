@@ -16,6 +16,9 @@ public class GunController : MonoBehaviour {
     private int currentGun;
     private Coroutine reloadCo;
     private Coroutine reloadAnimationCo;
+    private float targetFOV;
+    public float zoomSpeed;
+
 
     private void Start() {
         cam = Camera.main;
@@ -24,38 +27,26 @@ public class GunController : MonoBehaviour {
         gunNameText = UIManager.instance.gunNameText;
         shotCounter = 0f;
         allGuns[currentGun].currentAmmo = allGuns[currentGun].ammo;
+        ZoomOut();
         UpdateUI();
         UpdateGunDisplay();
     }
 
     private void Update() {
-        CheckIsShooting();
-
-        if (shotCounter > 0) {
-            shotCounter-= Time.deltaTime;
-        }
+        CheckForShot();
+        CheckForWeaponSwitch();
+        CheckForZoom();
+        CountdownTimeBetweenShots();
     }
 
     #region Shoot
-    private void CheckIsShooting() {
+    private void CheckForShot() {
         if (Input.GetMouseButtonDown(0)) {
             Shoot();
         }
         if (Input.GetMouseButton(0) && allGuns[currentGun].isAutomatic) {
             Shoot();
         }
-        if (Input.GetKey(KeyCode.LeftShift)) {
-            if (Input.GetKeyDown(KeyCode.Tab)) {
-                PreviousWeapon();
-            }
-        }
-        else {
-            if (Input.GetKeyDown(KeyCode.Tab)) {
-                NextWeapon();
-            }
-        }
-
-
     }
 
     public void Shoot() {
@@ -71,6 +62,12 @@ public class GunController : MonoBehaviour {
         shotCounter = allGuns[currentGun].timeBetweenShots;
         allGuns[currentGun].ReduceCurrentAmmo();
         UpdateUI();
+    }
+
+    private void CountdownTimeBetweenShots() {
+        if (shotCounter > 0) {
+            shotCounter -= Time.deltaTime;
+        }
     }
     #endregion
 
@@ -117,7 +114,20 @@ public class GunController : MonoBehaviour {
     #endregion
 
     #region Switch Weapon
-    public void NextWeapon() {
+    private void CheckForWeaponSwitch() {
+        if (Input.GetKey(KeyCode.LeftShift)) {
+            if (Input.GetKeyDown(KeyCode.Tab)) {
+                PreviousWeapon();
+            }
+        }
+        else {
+            if (Input.GetKeyDown(KeyCode.Tab)) {
+                NextWeapon();
+            }
+        }
+    }
+
+    private void NextWeapon() {
         int currentIndex = currentGun;
         currentIndex++;
         if (currentIndex >= allGuns.Length) {
@@ -126,7 +136,7 @@ public class GunController : MonoBehaviour {
         SwitchWeapon(currentIndex);
     }
 
-    public void PreviousWeapon() {
+    private void PreviousWeapon() {
         int currentIndex = currentGun;
         currentIndex--;
         if (currentIndex < 0) {
@@ -143,6 +153,29 @@ public class GunController : MonoBehaviour {
         UpdateUI();
         UpdateGunDisplay();
     }
+    #endregion
+
+    #region Zoom
+    private void CheckForZoom() {
+        if (Input.GetMouseButtonDown(1)) {
+            ZoomIn();
+        }
+        if (Input.GetMouseButtonUp(1)) {
+            ZoomOut();
+        }
+        LerpToZoomPosition();
+    }
+    private void ZoomIn() {
+        targetFOV = allGuns[currentGun].zoomedFOV;
+    }
+    private void ZoomOut() {
+        targetFOV = 60;
+    }
+
+    private void LerpToZoomPosition() {
+        cam.fieldOfView = Mathf.Lerp(cam.fieldOfView,targetFOV,Time.deltaTime*zoomSpeed);
+    }
+
     #endregion
 
 }
