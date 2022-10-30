@@ -316,6 +316,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gunName: Rifle
   isAutomatic: 1
+  zoomedFOV: 0
   timeBetweenShots: 0.35
   ammo: 18
   currentAmmo: 0
@@ -1133,6 +1134,8 @@ MonoBehaviour:
   groundLayers:
     serializedVersion: 2
     m_Bits: 64
+  crouchYPosition: 0
+  crouchSpeed: 0
 --- !u!114 &1005120561
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1149,6 +1152,7 @@ MonoBehaviour:
   - {fileID: 1385351459}
   - {fileID: 1743636542}
   - {fileID: 306250410}
+  zoomSpeed: 0
 --- !u!1 &1056915488
 GameObject:
   m_ObjectHideFlags: 0
@@ -1429,6 +1433,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gunName: Pistol
   isAutomatic: 0
+  zoomedFOV: 0
   timeBetweenShots: 0.15
   ammo: 12
   currentAmmo: 0
@@ -1487,7 +1492,7 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -1927,6 +1932,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gunName: Sub Machine Gun
   isAutomatic: 1
+  zoomedFOV: 0
   timeBetweenShots: 0.1
   ammo: 30
   currentAmmo: 0
