@@ -2,8 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerController : MonoBehaviour{
+public class PlayerController : MonoBehaviourPunCallbacks{
 
     [Header("References")]
     [SerializeField] private Transform viewPoint;
@@ -34,28 +35,20 @@ public class PlayerController : MonoBehaviour{
     private void Start() {
         characterController = GetComponent<CharacterController>();
         cam = Camera.main;
-        SetPlayerAtRandomSpawnPoint();
     }
 
     private void Update() {
+        if (!photonView.IsMine) { return; }
         PlayerRotation();
         PlayerMovement();
         CheckForCrouch();
     }
 
     private void LateUpdate() {
+        if (!photonView.IsMine) { return; }
         SetCameraPosition();
         SetCameraRotation();
     }
-
-    #region Spawn
-    private void SetPlayerAtRandomSpawnPoint() {
-        Transform spawnPoint = SpawnManager.instance.GetRandomSpawnPoint();
-        transform.position = spawnPoint.position;
-        transform.rotation = spawnPoint.rotation;
-    }
-
-    #endregion
 
     #region Translation
     private void PlayerMovement() {
@@ -127,6 +120,10 @@ public class PlayerController : MonoBehaviour{
     private void SetCameraRotation() {
         cam.transform.rotation = viewPoint.rotation;
     }
+    #endregion
+
+    #region Photon Callbacks
+
     #endregion
 
 }

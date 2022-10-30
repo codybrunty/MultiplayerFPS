@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Photon.Pun;
 
-public class GunController : MonoBehaviour {
+public class GunController : MonoBehaviourPunCallbacks {
 
     [Header("Gun Settings")]
     private bool isReloading;
@@ -19,7 +20,6 @@ public class GunController : MonoBehaviour {
     private float targetFOV;
     public float zoomSpeed;
 
-
     private void Start() {
         cam = Camera.main;
         pool = ObjectPoolingManager.instance;
@@ -33,6 +33,7 @@ public class GunController : MonoBehaviour {
     }
 
     private void Update() {
+        if (!photonView.IsMine) { return; }
         CheckForShot();
         CheckForWeaponSwitch();
         CheckForZoom();
