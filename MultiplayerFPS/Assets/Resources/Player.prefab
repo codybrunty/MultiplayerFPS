@@ -104,7 +104,7 @@ MonoBehaviour:
   isAutomatic: 0
   zoomedFOV: 50
   timeBetweenShots: 0.15
-  ammo: 12
+  ammo: 15
   currentAmmo: 0
   reloadDuration: 2
   damage: 4
@@ -253,7 +253,8 @@ MonoBehaviour:
     m_Bits: 64
   crouchYPosition: 0
   crouchSpeed: 10
-  currentHealth: 20
+  maxHealth: 20
+  currentHealth: 0
 --- !u!143 &5986523919256212359
 CharacterController:
   m_ObjectHideFlags: 0
@@ -410,7 +411,7 @@ MonoBehaviour:
   isAutomatic: 0
   zoomedFOV: 30
   timeBetweenShots: 0.35
-  ammo: 18
+  ammo: 5
   currentAmmo: 0
   reloadDuration: 3
   damage: 10

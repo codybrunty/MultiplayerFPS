@@ -32,11 +32,17 @@ public class PlayerController : MonoBehaviourPunCallbacks{
     public float crouchSpeed;
     private float targetViewportYPosition;
     [Header("Player Health")]
+    public int maxHealth;
     public int currentHealth;
 
     private void Start() {
         characterController = GetComponent<CharacterController>();
         cam = Camera.main;
+
+        if (!photonView.IsMine) { return; }
+        currentHealth = maxHealth;
+        UIManager.instance.UpdateHealth(currentHealth, maxHealth);
+        UIManager.instance.UpdatePlayerName(photonView.Owner.NickName);
     }
 
     private void Update() {
@@ -128,15 +134,12 @@ public class PlayerController : MonoBehaviourPunCallbacks{
     public void TakeDamage(int damage,string damager) {
         if (photonView.IsMine) {
             currentHealth -= damage;
+            UIManager.instance.UpdateHealth(currentHealth, maxHealth);
             if (currentHealth <= 0) {
                 SpawnManager.instance.Die(damager);
             }
         }
     }
-
-    #endregion
-
-    #region Photon Callbacks
 
     #endregion
 

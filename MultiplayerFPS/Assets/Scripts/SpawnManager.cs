@@ -10,6 +10,7 @@ public class SpawnManager : MonoBehaviour{
     public string playerResourcesName;
     public string deathEffectResourcesName;
     private GameObject player;
+    private List<GameObject> allPlayers = new List<GameObject>();
     public float respawnWaitDuration;
 
     private void Awake() {
@@ -19,7 +20,8 @@ public class SpawnManager : MonoBehaviour{
     private void Start() {
         HideSpawnPoints();
         if (PhotonNetwork.IsConnected) {
-            SpawnPlayer();
+            StartCoroutine(SpawnOnStart()); 
+            //SpawnPlayer();
         }
     }
 
@@ -31,13 +33,29 @@ public class SpawnManager : MonoBehaviour{
     }
 
     public Transform GetRandomSpawnPoint() {
-        return allSpawnPoints[Random.Range(0,allSpawnPoints.Length)];
+        Transform randomSpawnPoint = allSpawnPoints[Random.Range(0, allSpawnPoints.Length)];
+        GameObject closestPlayer = GetClosestPlayer(randomSpawnPoint);
+        if (closestPlayer != null) {
+            while(Vector3.Distance(randomSpawnPoint.position, closestPlayer.transform.position) < 5f) {
+                randomSpawnPoint = allSpawnPoints[Random.Range(0, allSpawnPoints.Length)];
+                closestPlayer = GetClosestPlayer(randomSpawnPoint);
+                Debug.Log("Choose new spawn someone close by");
+            }
+        }
+        else {
+            Debug.Log("No Players");
+        }
+        return randomSpawnPoint;
     }
     #endregion
-
+    IEnumerator SpawnOnStart() {
+        yield return new WaitForSeconds(1f);
+        SpawnPlayer();
+    }
     public void SpawnPlayer() {
         Transform spawnPoint = GetRandomSpawnPoint();
         player = PhotonNetwork.Instantiate(playerResourcesName,spawnPoint.position,spawnPoint.rotation);
+        UIManager.instance.HideJoinGamePanel();
     }
 
     public void Die(string damager) {
@@ -52,4 +70,18 @@ public class SpawnManager : MonoBehaviour{
         SpawnPlayer();
     }
 
+    private GameObject GetClosestPlayer(Transform point) {
+        float smallestDistance = int.MaxValue;
+        GameObject closestPlayer = null;
+
+        GameObject[] playersArray = GameObject.FindGameObjectsWithTag("Player");
+        foreach (GameObject p in playersArray) {
+            float distance = Vector3.Distance(p.transform.position, point.position);
+            if(distance < smallestDistance) {
+                smallestDistance = distance;
+                closestPlayer = p;
+            }
+        }
+        return closestPlayer;
+    }
 }

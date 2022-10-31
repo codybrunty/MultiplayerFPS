@@ -12,7 +12,6 @@ public class GunController : MonoBehaviourPunCallbacks {
     private Camera cam;
     private ObjectPoolingManager pool;
     private TextMeshProUGUI ammoText;
-    private TextMeshProUGUI gunNameText;
     public Gun[] allGuns;
     private int currentGun;
     private Coroutine reloadCo;
@@ -26,19 +25,20 @@ public class GunController : MonoBehaviourPunCallbacks {
     private void Start() {
         cam = Camera.main;
         pool = ObjectPoolingManager.instance;
-        ammoText = UIManager.instance.ammoText;
-        gunNameText = UIManager.instance.gunNameText;
         playerController = gameObject.GetComponent<PlayerController>();
+        UpdateGunDisplay();
+        if (!photonView.IsMine) { return; }
+        ammoText = UIManager.instance.ammoText;
         shotCounter = 0f;
         allGuns[currentGun].currentAmmo = allGuns[currentGun].ammo;
         ZoomOut();
         UpdateUI();
-        UpdateGunDisplay();
     }
 
     private void Update() {
         if (!photonView.IsMine) { return; }
         CheckForShot();
+        CheckForReload();
         CheckForWeaponSwitch();
         CheckForZoom();
         CountdownTimeBetweenShots();
@@ -90,6 +90,15 @@ public class GunController : MonoBehaviourPunCallbacks {
     #endregion
 
     #region Reload
+
+    private void CheckForReload() {
+        if (isReloading) { return; }
+        if (allGuns[currentGun].currentAmmo == allGuns[currentGun].ammo) { return; }
+        if (Input.GetKeyDown(KeyCode.R)) {
+            ReloadWeapon();
+        }
+    }
+
     private void ReloadWeapon() {
         isReloading = true;
         if (reloadCo != null) { StopCoroutine(reloadCo); }
@@ -98,17 +107,20 @@ public class GunController : MonoBehaviourPunCallbacks {
 
     IEnumerator ReloadWeaponOverTime() {
         if (reloadAnimationCo != null) { StopCoroutine(reloadAnimationCo); }
-        reloadAnimationCo = StartCoroutine(ReloadAmmoUIAnimation());
-        yield return new WaitForSeconds(allGuns[currentGun].reloadDuration);
+        //Less bullets to reload less time it takes
+        float totalReloadTime = (allGuns[currentGun].reloadDuration / allGuns[currentGun].ammo) * (allGuns[currentGun].ammo - allGuns[currentGun].currentAmmo);
+        reloadAnimationCo = StartCoroutine(ReloadAmmoUIAnimation(totalReloadTime));
+        yield return new WaitForSeconds(totalReloadTime);
         allGuns[currentGun].ResetCurrentAmmo();
         UpdateUI();
         isReloading = false;
     }
 
-    IEnumerator ReloadAmmoUIAnimation() {
+    IEnumerator ReloadAmmoUIAnimation(float duration) {
         ammoText.color = Color.red;
-        for (float t = 0f; t < allGuns[currentGun].reloadDuration; t+=Time.deltaTime) {
-            ammoText.text = "Reload: "+((int)Mathf.Lerp(0, allGuns[currentGun].ammo,t/ allGuns[currentGun].reloadDuration)).ToString();
+        int startAmmo = allGuns[currentGun].currentAmmo;
+        for (float t = 0f; t < duration; t+=Time.deltaTime) {
+            ammoText.text = ((int)Mathf.Lerp(startAmmo, allGuns[currentGun].ammo,t/ duration)).ToString() + " / " + allGuns[currentGun].ammo.ToString();
             yield return null;
         }
     }
@@ -116,9 +128,8 @@ public class GunController : MonoBehaviourPunCallbacks {
 
     #region UI
     private void UpdateUI() {
-        gunNameText.text = allGuns[currentGun].gunName;
         ammoText.color = Color.white;
-        ammoText.text = "Ammo: " + allGuns[currentGun].currentAmmo.ToString();
+        ammoText.text = allGuns[currentGun].currentAmmo.ToString() + " / " + allGuns[currentGun].ammo.ToString();
     }
     #endregion
 
