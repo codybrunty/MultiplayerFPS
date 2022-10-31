@@ -8,7 +8,9 @@ public class SpawnManager : MonoBehaviour{
     public static SpawnManager instance;
     public Transform[] allSpawnPoints;
     public string playerResourcesName;
+    public string deathEffectResourcesName;
     private GameObject player;
+    public float respawnWaitDuration;
 
     private void Awake() {
         instance = this;
@@ -38,6 +40,16 @@ public class SpawnManager : MonoBehaviour{
         player = PhotonNetwork.Instantiate(playerResourcesName,spawnPoint.position,spawnPoint.rotation);
     }
 
+    public void Die(string damager) {
+        PhotonNetwork.Instantiate(deathEffectResourcesName, player.transform.position, Quaternion.identity);
+        PhotonNetwork.Destroy(player);
+        UIManager.instance.ShowDeathPanel(damager,respawnWaitDuration);
+        StartCoroutine(Respawn());
+    }
 
+    IEnumerator Respawn() {
+        yield return new WaitForSeconds(respawnWaitDuration);
+        SpawnPlayer();
+    }
 
 }

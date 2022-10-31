@@ -19,12 +19,16 @@ public class GunController : MonoBehaviourPunCallbacks {
     private Coroutine reloadAnimationCo;
     private float targetFOV;
     public float zoomSpeed;
+    public string bulletHoleResourcesName;
+    public string bulletPlayerImpactResourcesName;
+    private PlayerController playerController;
 
     private void Start() {
         cam = Camera.main;
         pool = ObjectPoolingManager.instance;
         ammoText = UIManager.instance.ammoText;
         gunNameText = UIManager.instance.gunNameText;
+        playerController = gameObject.GetComponent<PlayerController>();
         shotCounter = 0f;
         allGuns[currentGun].currentAmmo = allGuns[currentGun].ammo;
         ZoomOut();
@@ -58,7 +62,14 @@ public class GunController : MonoBehaviourPunCallbacks {
         Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         ray.origin = cam.transform.position;
         if (Physics.Raycast(ray, out RaycastHit hit)) {
-            pool.SpawnFromPool("BulletHole", hit.point + (hit.normal * .002f), Quaternion.LookRotation(hit.normal, Vector3.up));
+            if(hit.collider.tag == "Player") {
+                PhotonNetwork.Instantiate(bulletPlayerImpactResourcesName, hit.point, Quaternion.identity);
+                hit.collider.gameObject.GetPhotonView().RPC("TakeDamage",RpcTarget.All, allGuns[currentGun].damage, photonView.Owner.NickName);
+            }
+            else {
+                PhotonNetwork.Instantiate(bulletHoleResourcesName, hit.point + (hit.normal * .002f), Quaternion.LookRotation(hit.normal, Vector3.up));
+                //pool.SpawnFromPool("BulletHole", hit.point + (hit.normal * .002f), Quaternion.LookRotation(hit.normal, Vector3.up));
+            }
         }
         shotCounter = allGuns[currentGun].timeBetweenShots;
         allGuns[currentGun].ReduceCurrentAmmo();
@@ -70,6 +81,12 @@ public class GunController : MonoBehaviourPunCallbacks {
             shotCounter -= Time.deltaTime;
         }
     }
+
+    [PunRPC]
+    public void TakeDamage(int damage, string damager) {
+        playerController.TakeDamage(damage, damager);
+    }
+
     #endregion
 
     #region Reload

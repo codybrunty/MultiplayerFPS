@@ -31,6 +31,8 @@ public class PlayerController : MonoBehaviourPunCallbacks{
     public float crouchYPosition;
     public float crouchSpeed;
     private float targetViewportYPosition;
+    [Header("Player Health")]
+    public int currentHealth;
 
     private void Start() {
         characterController = GetComponent<CharacterController>();
@@ -120,6 +122,18 @@ public class PlayerController : MonoBehaviourPunCallbacks{
     private void SetCameraRotation() {
         cam.transform.rotation = viewPoint.rotation;
     }
+    #endregion
+
+    #region Health
+    public void TakeDamage(int damage,string damager) {
+        if (photonView.IsMine) {
+            currentHealth -= damage;
+            if (currentHealth <= 0) {
+                SpawnManager.instance.Die(damager);
+            }
+        }
+    }
+
     #endregion
 
     #region Photon Callbacks

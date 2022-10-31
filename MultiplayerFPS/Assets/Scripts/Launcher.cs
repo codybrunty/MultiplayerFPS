@@ -4,7 +4,6 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
-using UnityEngine.SceneManagement;
 
 public class Launcher : MonoBehaviourPunCallbacks{
 
@@ -67,13 +66,10 @@ public class Launcher : MonoBehaviourPunCallbacks{
 
     public override void OnJoinedLobby() {
         base.OnJoinedLobby();
-        if (PlayerPrefs.GetString("PlayerNickname", "") == "") {
-            ShowCreateNamePanel();
+        if (PlayerPrefs.GetString("PlayerNickname", "") != "") {
+            createNameInputField.text = PlayerPrefs.GetString("PlayerNickname", "");
         }
-        else {
-            PhotonNetwork.NickName = PlayerPrefs.GetString("PlayerNickname", "");
-            ShowMainMenu();
-        }
+        ShowCreateNamePanel();
     }
     public override void OnJoinedRoom() {
         base.OnJoinedRoom();
