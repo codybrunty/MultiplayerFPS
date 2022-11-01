@@ -17,6 +17,7 @@ public class Launcher : MonoBehaviourPunCallbacks{
     [Header("Main Menu")]
     [SerializeField] private GameObject menuPanel;
     [SerializeField] private GameObject testRoomButton;
+    private bool onStart = true;
     [Header("Find Room Menu")]
     [SerializeField] private GameObject joinRoomPanel;
     [SerializeField] private RoomButton roomButtonPrefab;
@@ -66,10 +67,16 @@ public class Launcher : MonoBehaviourPunCallbacks{
 
     public override void OnJoinedLobby() {
         base.OnJoinedLobby();
-        if (PlayerPrefs.GetString("PlayerNickname", "") != "") {
-            createNameInputField.text = PlayerPrefs.GetString("PlayerNickname", "");
+        if (!onStart) {
+            ShowMainMenu();
         }
-        ShowCreateNamePanel();
+        else {
+            onStart = false;
+            if (PlayerPrefs.GetString("PlayerNickname", "") != "") {
+                createNameInputField.text = PlayerPrefs.GetString("PlayerNickname", "");
+            }
+            ShowCreateNamePanel();
+        }
     }
     public override void OnJoinedRoom() {
         base.OnJoinedRoom();

@@ -39,11 +39,8 @@ public class SpawnManager : MonoBehaviour{
             while(Vector3.Distance(randomSpawnPoint.position, closestPlayer.transform.position) < 5f) {
                 randomSpawnPoint = allSpawnPoints[Random.Range(0, allSpawnPoints.Length)];
                 closestPlayer = GetClosestPlayer(randomSpawnPoint);
-                Debug.Log("Choose new spawn someone close by");
+                //Debug.Log("Choose new spawn someone close by");
             }
-        }
-        else {
-            Debug.Log("No Players");
         }
         return randomSpawnPoint;
     }
@@ -58,7 +55,10 @@ public class SpawnManager : MonoBehaviour{
         UIManager.instance.HideJoinGamePanel();
     }
 
-    public void Die(string damager) {
+    public void Die(string damager,int actor) {
+        MatchManager.instance.UpdateStatSend(PhotonNetwork.LocalPlayer.ActorNumber, 0, 1);
+        MatchManager.instance.UpdateStatSend(actor, 1, 1);
+
         PhotonNetwork.Instantiate(deathEffectResourcesName, player.transform.position, Quaternion.identity);
         PhotonNetwork.Destroy(player);
         UIManager.instance.ShowDeathPanel(damager,respawnWaitDuration);

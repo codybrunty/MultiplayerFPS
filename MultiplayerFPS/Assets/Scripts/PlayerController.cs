@@ -134,12 +134,12 @@ public class PlayerController : MonoBehaviourPunCallbacks{
     #endregion
 
     #region Health
-    public void TakeDamage(int damage,string damager) {
+    public void TakeDamage(int damage,string damager, int actor) {
         if (photonView.IsMine) {
             currentHealth -= damage;
             UIManager.instance.UpdateHealth(currentHealth, maxHealth);
             if (currentHealth <= 0) {
-                SpawnManager.instance.Die(damager);
+                SpawnManager.instance.Die(damager,actor);
             }
         }
     }

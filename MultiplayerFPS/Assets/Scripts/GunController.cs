@@ -72,7 +72,7 @@ public class GunController : MonoBehaviourPunCallbacks {
         if (Physics.Raycast(ray, out RaycastHit hit)) {
             if(hit.collider.tag == "Player") {
                 PhotonNetwork.Instantiate(bulletPlayerImpactResourcesName, hit.point, Quaternion.identity);
-                hit.collider.gameObject.GetPhotonView().RPC("TakeDamage",RpcTarget.All, allGuns[currentGun].damage, photonView.Owner.NickName);
+                hit.collider.gameObject.GetPhotonView().RPC("TakeDamage",RpcTarget.All, allGuns[currentGun].damage, photonView.Owner.NickName, PhotonNetwork.LocalPlayer.ActorNumber);
             }
             else {
                 PhotonNetwork.Instantiate(bulletHoleResourcesName, hit.point + (hit.normal * .002f), Quaternion.LookRotation(hit.normal, Vector3.up));
@@ -91,8 +91,8 @@ public class GunController : MonoBehaviourPunCallbacks {
     }
 
     [PunRPC]
-    public void TakeDamage(int damage, string damager) {
-        playerController.TakeDamage(damage, damager);
+    public void TakeDamage(int damage, string damager, int actor) {
+        playerController.TakeDamage(damage, damager, actor);
     }
 
     #endregion
