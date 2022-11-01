@@ -21,18 +21,26 @@ public class GunController : MonoBehaviourPunCallbacks {
     public string bulletHoleResourcesName;
     public string bulletPlayerImpactResourcesName;
     private PlayerController playerController;
+    [SerializeField] Transform gunHolder;
+    [SerializeField] Transform gunPoint;
 
     private void Start() {
         cam = Camera.main;
         pool = ObjectPoolingManager.instance;
         playerController = gameObject.GetComponent<PlayerController>();
         UpdateGunDisplay();
-        if (!photonView.IsMine) { return; }
-        ammoText = UIManager.instance.ammoText;
-        shotCounter = 0f;
-        allGuns[currentGun].currentAmmo = allGuns[currentGun].ammo;
-        ZoomOut();
-        UpdateUI();
+        if (photonView.IsMine) {
+            ammoText = UIManager.instance.ammoText;
+            shotCounter = 0f;
+            allGuns[currentGun].currentAmmo = allGuns[currentGun].ammo;
+            ZoomOut();
+            UpdateUI();
+        }
+        else {
+            gunHolder.parent = gunPoint;
+            gunHolder.localPosition = Vector3.zero;
+            gunHolder.localRotation = Quaternion.identity;
+        }
     }
 
     private void Update() {
@@ -195,6 +203,13 @@ public class GunController : MonoBehaviourPunCallbacks {
         isReloading = false;
         currentGun = newGun;
         UpdateUI();
+        UpdateGunDisplay();
+        photonView.RPC("SetGunOnNetwork",RpcTarget.All,currentGun);
+    }
+
+    [PunRPC]
+    public void SetGunOnNetwork(int gun) {
+        currentGun = gun;
         UpdateGunDisplay();
     }
     #endregion

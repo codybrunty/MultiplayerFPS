@@ -11,6 +11,8 @@ public class PlayerController : MonoBehaviourPunCallbacks{
     private Camera cam;
     private CharacterController characterController;
     [SerializeField] private Transform groundCheckPoint;
+    [SerializeField] private Animator animator;
+    [SerializeField] private GameObject playerModel;
     [Header("Mouse Settings")]
     public bool invertedLook;
     public float mouseSensitivity;
@@ -38,11 +40,11 @@ public class PlayerController : MonoBehaviourPunCallbacks{
     private void Start() {
         characterController = GetComponent<CharacterController>();
         cam = Camera.main;
-
         if (!photonView.IsMine) { return; }
         currentHealth = maxHealth;
         UIManager.instance.UpdateHealth(currentHealth, maxHealth);
         UIManager.instance.UpdatePlayerName(photonView.Owner.NickName);
+        playerModel.SetActive(false);
     }
 
     private void Update() {
@@ -50,6 +52,7 @@ public class PlayerController : MonoBehaviourPunCallbacks{
         PlayerRotation();
         PlayerMovement();
         CheckForCrouch();
+        SetAnimation();
     }
 
     private void LateUpdate() {
@@ -143,4 +146,10 @@ public class PlayerController : MonoBehaviourPunCallbacks{
 
     #endregion
 
+    #region Animation
+    private void SetAnimation() {
+        animator.SetBool("grounded", isGrounded);
+        animator.SetFloat("speed",moveDirection.magnitude);
+    }
+    #endregion
 }

@@ -20,7 +20,9 @@ public class UIManager : MonoBehaviour{
     private void Awake() {
         instance = this;
     }
-
+    private void Start() {
+        ShowJoinGamePanel();
+    }
     public void ShowDeathPanel(string damager,float duration) {
         deathMessageText.text = "You were killed by " + damager;
         deathPanel.SetActive(true);
@@ -40,6 +42,9 @@ public class UIManager : MonoBehaviour{
         deathPanel.SetActive(false);
     }
 
+    public void ShowJoinGamePanel() {
+        joinGamePanel.SetActive(true);
+    }
     public void HideJoinGamePanel() {
         joinGamePanel.SetActive(false);
     }
