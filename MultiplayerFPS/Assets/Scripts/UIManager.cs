@@ -22,6 +22,8 @@ public class UIManager : MonoBehaviour{
     public GameObject leaderboardPanel;
     public LeaderboardPlayer leaderboardPlayerPrefab;
     public List<GameObject> allLeaderboardPlayers = new List<GameObject>();
+    public GameObject matchOverPanel;
+    public Transform matchOverCameraPoint;
 
     private void Awake() {
         instance = this;
@@ -49,12 +51,15 @@ public class UIManager : MonoBehaviour{
         HideDeathPanel();
     }
 
-    private void HideDeathPanel() {
+    public void HideDeathPanel() {
         deathPanel.SetActive(false);
     }
 
     public void ShowJoinGamePanel() {
         joinGamePanel.SetActive(true);
+    }
+    public void ShowMatchOverPanel() {
+        matchOverPanel.SetActive(true);
     }
     public void HideJoinGamePanel() {
         joinGamePanel.SetActive(false);
@@ -62,6 +67,8 @@ public class UIManager : MonoBehaviour{
 
     #region Leaderboard UI
     private void CheckShowLeaderboard() {
+        if(MatchManager.instance.gameState == MatchManager.GameState.Ending) { return; }
+
         if (Input.GetKeyDown(KeyCode.CapsLock)) {
             ShowLeaderboardPanel();
         }
@@ -127,4 +134,6 @@ public class UIManager : MonoBehaviour{
 
         return sortedPlayers;
     }
+
+
 }

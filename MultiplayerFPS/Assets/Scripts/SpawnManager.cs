@@ -20,8 +20,7 @@ public class SpawnManager : MonoBehaviour{
     private void Start() {
         HideSpawnPoints();
         if (PhotonNetwork.IsConnected) {
-            StartCoroutine(SpawnOnStart()); 
-            //SpawnPlayer();
+            StartCoroutine(SpawnOnStart());
         }
     }
 
@@ -61,13 +60,16 @@ public class SpawnManager : MonoBehaviour{
 
         PhotonNetwork.Instantiate(deathEffectResourcesName, player.transform.position, Quaternion.identity);
         PhotonNetwork.Destroy(player);
-        UIManager.instance.ShowDeathPanel(damager,respawnWaitDuration);
+
+        UIManager.instance.ShowDeathPanel(damager, respawnWaitDuration);
         StartCoroutine(Respawn());
     }
 
     IEnumerator Respawn() {
         yield return new WaitForSeconds(respawnWaitDuration);
-        SpawnPlayer();
+        if(MatchManager.instance.gameState != MatchManager.GameState.Ending) {
+            SpawnPlayer();
+        }
     }
 
     private GameObject GetClosestPlayer(Transform point) {

@@ -12,6 +12,10 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
     public List<PlayerInfo> allPlayers = new List<PlayerInfo> ();
     public int index;
     public enum EventCodes : byte { NewPlayer, ListPlayers, UpdateStat }
+    public enum GameState { Waiting, Playing, Ending }
+    public int killsToWin;
+    public GameState gameState = GameState.Waiting;
+    public float waitAfterEnding;
 
     private void Awake() {
         instance = this;
@@ -23,6 +27,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
         }
         else {
             NewPlayerSend();
+            gameState = GameState.Playing;
         }
     }
 
@@ -60,32 +65,40 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
     }
 
     public void NewPlayerReceive(object[] data) {
-        PlayerInfo newPlayer = new PlayerInfo(data[0].ToString(),(int)data[1]);
+        PlayerInfo newPlayer = new PlayerInfo(data[0].ToString(),(int)data[1],0,0);
         allPlayers.Add(newPlayer);
+        Debug.Log("Count: " + allPlayers.Count);
         ListPlayersSend();
     }
     public void ListPlayersSend() {
-        object[] data = new object[allPlayers.Count];
+        object[] data = new object[allPlayers.Count+1];
+        data[0] = gameState;
         for (int i = 0; i < allPlayers.Count; i++) {
-            object[] player = new object[4];
+            object[] player = new object[5];
             player[0] = allPlayers[i].nickName;
             player[1] = allPlayers[i].actor;
             player[2] = allPlayers[i].deaths;
             player[3] = allPlayers[i].kills;
-            data[i] = player;
+            data[i+1] = player;
         }
-        PhotonNetwork.RaiseEvent((byte)EventCodes.ListPlayers,data,new RaiseEventOptions { Receivers = ReceiverGroup.All}, new SendOptions { Reliability = true });
+        PhotonNetwork.RaiseEvent((byte)EventCodes.ListPlayers,data,new RaiseEventOptions { Receivers = ReceiverGroup.All }, new SendOptions { Reliability = true });
     }
     public void ListPlayersReceive(object[] data) {
-        allPlayers.Clear();
-        for (int i = 0;i < data.Length;i++) {
-            object[] playerData = (object[])data[i];
-            PlayerInfo player = new PlayerInfo(playerData[0].ToString(), (int)playerData[1], (int)playerData[2], (int)playerData[3]);
-            allPlayers.Add(player);
-            if (PhotonNetwork.LocalPlayer.ActorNumber == player.actor) {
-                index = i;
+        gameState = (GameState)data[0];
+        if (!PhotonNetwork.IsMasterClient) {
+
+            allPlayers.Clear();
+            for (int i = 1; i < data.Length; i++) {
+                object[] playerData = (object[])data[i];
+                PlayerInfo player = new PlayerInfo(playerData[0].ToString(), (int)playerData[1], (int)playerData[2], (int)playerData[3]);
+                allPlayers.Add(player);
+                if (PhotonNetwork.LocalPlayer.ActorNumber == player.actor) {
+                    index = i - 1;
+                }
             }
+
         }
+        StateCheck();
     }
     public void UpdateStatSend(int actor, int stat, int amt) {
         //stat 0deaths 1kills
@@ -120,7 +133,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
                 break;
             }
         }
-
+        ScoreCheck();
     }
 
     private void UpdateStatsDisplay() {
@@ -130,7 +143,55 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
         }
     }
 
+    public override void OnLeftRoom() {
+        base.OnLeftRoom();
+        SceneManager.LoadScene(0);
+    }
 
+    private void ScoreCheck() {
+        bool results = false;
+        foreach (PlayerInfo p in allPlayers) { 
+            if(p.kills >= killsToWin) {
+                results = true;
+                break;
+            }
+        }
+        if (results) {
+            if(PhotonNetwork.IsMasterClient && gameState != GameState.Ending) {
+                gameState = GameState.Ending;
+                ListPlayersSend();
+            }
+        }
+    }
+
+    private void StateCheck() {
+        if (gameState == GameState.Ending) {
+            EndGame();
+        }
+    }
+
+    private void EndGame() {
+        if (PhotonNetwork.IsMasterClient) {
+            PhotonNetwork.DestroyAll();
+        }
+        UIManager.instance.ShowMatchOverPanel();
+        UIManager.instance.ShowLeaderboardPanel();
+        UIManager.instance.HideDeathPanel();
+
+        Camera cam = Camera.main;
+        cam.transform.position = UIManager.instance.matchOverCameraPoint.position;
+        cam.transform.rotation = UIManager.instance.matchOverCameraPoint.rotation;
+        
+        StartCoroutine(ReturnToMainMenu());
+    }
+
+    IEnumerator ReturnToMainMenu() {
+        yield return new WaitForSeconds(waitAfterEnding);
+        PhotonNetwork.AutomaticallySyncScene = false;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        PhotonNetwork.LeaveRoom();
+    }
 
 }
 
@@ -141,12 +202,6 @@ public class PlayerInfo{
     public int kills;
     public int deaths;
 
-    public PlayerInfo(string nickName, int actor) {
-        this.nickName = nickName;
-        this.actor = actor;
-        deaths = 0;
-        kills = 0;
-    }
     public PlayerInfo(string nickName, int actor, int deaths, int kills) {
         this.nickName = nickName;
         this.actor = actor;

@@ -126,10 +126,14 @@ public class PlayerController : MonoBehaviourPunCallbacks{
 
     #region Camera
     private void SetCameraPosition() {
-        cam.transform.position = viewPoint.position;
+        if (MatchManager.instance.gameState != MatchManager.GameState.Ending) {
+            cam.transform.position = viewPoint.position;
+        }
     }
     private void SetCameraRotation() {
-        cam.transform.rotation = viewPoint.rotation;
+        if (MatchManager.instance.gameState != MatchManager.GameState.Ending) {
+            cam.transform.rotation = viewPoint.rotation;
+        }
     }
     #endregion
 

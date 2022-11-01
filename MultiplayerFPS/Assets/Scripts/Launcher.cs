@@ -17,7 +17,7 @@ public class Launcher : MonoBehaviourPunCallbacks{
     [Header("Main Menu")]
     [SerializeField] private GameObject menuPanel;
     [SerializeField] private GameObject testRoomButton;
-    private bool onStart = true;
+    public static bool onStart = true;
     [Header("Find Room Menu")]
     [SerializeField] private GameObject joinRoomPanel;
     [SerializeField] private RoomButton roomButtonPrefab;
