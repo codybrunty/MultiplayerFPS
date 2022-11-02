@@ -36,6 +36,9 @@ public class Launcher : MonoBehaviourPunCallbacks{
     [SerializeField] private TMP_InputField createNameInputField;
     [Header("Level Settings")]
     public string levelToPlay;
+    public string[] allMaps;
+    public bool changeMapBetweenRounds=true;
+
 
     private void Awake() {
         instance = this;
@@ -190,7 +193,7 @@ public class Launcher : MonoBehaviourPunCallbacks{
     }
 
     public void StartGame() {
-        PhotonNetwork.LoadLevel(levelToPlay);
+        PhotonNetwork.LoadLevel(allMaps[Random.Range(0,allMaps.Length)]);
     }
     public void TestRoom() {
         RoomOptions rOptions = new RoomOptions();

@@ -11,11 +11,12 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
     public static MatchManager instance;
     public List<PlayerInfo> allPlayers = new List<PlayerInfo> ();
     public int index;
-    public enum EventCodes : byte { NewPlayer, ListPlayers, UpdateStat }
+    public enum EventCodes : byte { NewPlayer, ListPlayers, UpdateStat, NextMatch }
     public enum GameState { Waiting, Playing, Ending }
     public int killsToWin;
     public GameState gameState = GameState.Waiting;
     public float waitAfterEnding;
+    public bool perpetual;
 
     private void Awake() {
         instance = this;
@@ -45,6 +46,9 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
                 case EventCodes.UpdateStat:
                     UpdateStatReceive(data);
                     break;
+                case EventCodes.NextMatch:
+                    NextMatchReceived();
+                    break;
             }
         }
     }
@@ -67,7 +71,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
     public void NewPlayerReceive(object[] data) {
         PlayerInfo newPlayer = new PlayerInfo(data[0].ToString(),(int)data[1],0,0);
         allPlayers.Add(newPlayer);
-        Debug.Log("Count: " + allPlayers.Count);
+        //Debug.Log("Count: " + allPlayers.Count);
         ListPlayersSend();
     }
     public void ListPlayersSend() {
@@ -86,17 +90,18 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
     public void ListPlayersReceive(object[] data) {
         gameState = (GameState)data[0];
         if (!PhotonNetwork.IsMasterClient) {
-
             allPlayers.Clear();
-            for (int i = 1; i < data.Length; i++) {
-                object[] playerData = (object[])data[i];
-                PlayerInfo player = new PlayerInfo(playerData[0].ToString(), (int)playerData[1], (int)playerData[2], (int)playerData[3]);
+        }
+        for (int i = 1; i < data.Length; i++) {
+            object[] playerData = (object[])data[i];
+            PlayerInfo player = new PlayerInfo(playerData[0].ToString(), (int)playerData[1], (int)playerData[2], (int)playerData[3]);
+            if (!PhotonNetwork.IsMasterClient) {
                 allPlayers.Add(player);
-                if (PhotonNetwork.LocalPlayer.ActorNumber == player.actor) {
-                    index = i - 1;
-                }
             }
-
+            if (PhotonNetwork.LocalPlayer.ActorNumber == player.actor) {
+                index = i - 1;
+                //Debug.Log(PhotonNetwork.LocalPlayer.NickName+": "+index);
+            }
         }
         StateCheck();
     }
@@ -125,6 +130,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
                         break;
                 }
                 if (i == index) {
+                    Debug.Log(PhotonNetwork.LocalPlayer.NickName + ": " + index);
                     UpdateStatsDisplay();
                 }
                 if (UIManager.instance.leaderboardPanel.activeInHierarchy) {
@@ -187,10 +193,45 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback{
 
     IEnumerator ReturnToMainMenu() {
         yield return new WaitForSeconds(waitAfterEnding);
-        PhotonNetwork.AutomaticallySyncScene = false;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        PhotonNetwork.LeaveRoom();
+        if (perpetual) {
+            if (PhotonNetwork.IsMasterClient) {
+                if (!Launcher.instance.changeMapBetweenRounds) {
+                    NextMatchSend();
+                }
+                else {
+                    int randomMapIndex = Random.Range(0, Launcher.instance.allMaps.Length);
+                    if (Launcher.instance.allMaps[randomMapIndex] == SceneManager.GetActiveScene().name) {
+                        NextMatchSend();
+                    }
+                    else {
+                        PhotonNetwork.LoadLevel(Launcher.instance.allMaps[randomMapIndex]);
+                    }
+                }
+            }
+        }
+        else {
+            PhotonNetwork.AutomaticallySyncScene = false;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            PhotonNetwork.LeaveRoom();
+        }
+    }
+
+    public void NextMatchSend() {
+        PhotonNetwork.RaiseEvent((byte)EventCodes.NextMatch, null, new RaiseEventOptions { Receivers = ReceiverGroup.All }, new SendOptions { Reliability = true });
+    }
+
+    public void NextMatchReceived() {
+        gameState = GameState.Playing;
+        UIManager.instance.HideMatchOverPanel();
+        UIManager.instance.HideLeaderboardPanel();
+        UIManager.instance.HideDeathPanel();
+        foreach (PlayerInfo p in allPlayers) {
+            p.kills = 0;
+            p.deaths = 0;
+        }
+        UpdateStatsDisplay();
+        SpawnManager.instance.SpawnPlayer();
     }
 
 }

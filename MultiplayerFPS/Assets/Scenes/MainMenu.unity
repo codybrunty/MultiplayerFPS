@@ -4546,6 +4546,10 @@ MonoBehaviour:
   createNamePanel: {fileID: 479175970}
   createNameInputField: {fileID: 257225107}
   levelToPlay: Map1
+  allMaps:
+  - Map1
+  - Map2
+  changeMapBetweenRounds: 1
 --- !u!224 &1799772919 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5783521022853709704, guid: 1b612b69e1f0c844c982e53bfb31d158, type: 3}

@@ -60,14 +60,14 @@ public class SpawnManager : MonoBehaviour{
 
         PhotonNetwork.Instantiate(deathEffectResourcesName, player.transform.position, Quaternion.identity);
         PhotonNetwork.Destroy(player);
-
+        player = null;
         UIManager.instance.ShowDeathPanel(damager, respawnWaitDuration);
         StartCoroutine(Respawn());
     }
 
     IEnumerator Respawn() {
         yield return new WaitForSeconds(respawnWaitDuration);
-        if(MatchManager.instance.gameState != MatchManager.GameState.Ending) {
+        if(MatchManager.instance.gameState != MatchManager.GameState.Ending && player==null) {
             SpawnPlayer();
         }
     }

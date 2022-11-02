@@ -61,6 +61,9 @@ public class UIManager : MonoBehaviour{
     public void ShowMatchOverPanel() {
         matchOverPanel.SetActive(true);
     }
+    public void HideMatchOverPanel() {
+        matchOverPanel.SetActive(false);
+    }
     public void HideJoinGamePanel() {
         joinGamePanel.SetActive(false);
     }
@@ -77,7 +80,7 @@ public class UIManager : MonoBehaviour{
         }
     }
 
-    private void HideLeaderboardPanel() {
+    public void HideLeaderboardPanel() {
         leaderboardPanel.SetActive(false);
     }
     public void ShowLeaderboardPanel() {
