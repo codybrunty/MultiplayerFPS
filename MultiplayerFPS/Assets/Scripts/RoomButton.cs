@@ -7,7 +7,7 @@ using Photon.Realtime;
 public class RoomButton : MonoBehaviour{
 
     [SerializeField] TextMeshProUGUI buttonText;
-    private RoomInfo roomInfo;
+    public RoomInfo roomInfo;
 
     public void SetupRoomButton(RoomInfo info) {
         roomInfo = info;

@@ -124,8 +124,11 @@ public class Launcher : MonoBehaviourPunCallbacks{
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList) {
         base.OnRoomListUpdate(roomList);
-        ClearRoomButtons();
-        CreateAllRoomButtons(roomList);
+        if (roomList.Count > 0) {
+            Debug.Log(roomList[0].Name);
+        }
+        RemoveRoomButtons(roomList);
+        AddRoomButtons(roomList);
     }
     public override void OnPlayerEnteredRoom(Player newPlayer) {
         base.OnPlayerEnteredRoom(newPlayer);
@@ -239,14 +242,22 @@ public class Launcher : MonoBehaviourPunCallbacks{
         createNamePanel.SetActive(true);
     }
 
-    private void ClearRoomButtons() {
-        foreach(RoomButton button in allRoomButtons) {
-            Destroy(button.gameObject);
+    private void RemoveRoomButtons(List<RoomInfo> roomList) {
+        List<RoomButton> removeList = new List<RoomButton> ();
+        foreach (RoomInfo rInfo in roomList) {
+            foreach (RoomButton rbutton in allRoomButtons) {
+                if (rbutton.roomInfo.Name == rInfo.Name && rInfo.RemovedFromList) {
+                    Destroy(rbutton.gameObject);
+                    removeList.Add(rbutton);
+                }
+            }
         }
-        allRoomButtons.Clear();
+        foreach (RoomButton rbutton in removeList) {
+            allRoomButtons.Remove(rbutton);
+        }
     }
 
-    private void CreateAllRoomButtons(List<RoomInfo> roomList) {
+    private void AddRoomButtons(List<RoomInfo> roomList) {
         roomButtonPrefab.gameObject.SetActive(true);
         for (int i = 0; i < roomList.Count; i++) {
             if (roomList[i].PlayerCount < roomList[i].MaxPlayers && !roomList[i].RemovedFromList) {
